@@ -188,14 +188,14 @@ if __name__ == '__main__':
     ('Weibull (2)', 'β= 4.329, γ= 84.120')]
     """
 
-    for P_c in np.round(np.arange(0.1, 1, .1).tolist(), 2)[:1]:
+    for P_c in np.round(np.arange(0.1, 1, .1).tolist(), 2)[:]:
         dict_summary_table = {}
         df_writer = pd.DataFrame()
         lst_summary_table = defaultdict(lambda: defaultdict(dict))
         print(dt.datetime.now(), P_c)
         for each_sheet in xl_dist_headway.sheet_names[:]:
 
-            print(each_sheet)
+            # print(each_sheet)
             day_date, lane_id = each_sheet.split('_')
             os.makedirs(f'{current_dir}/holy_moly/{day_date}/{lane_id}', exist_ok=True)
             dict_summary_table[day_date] = {i:dict() for i in range(1,6)}
@@ -312,7 +312,7 @@ if __name__ == '__main__':
                     plot_iteration('v_c', lst_v_c_results)
                     lst_summary_table[day_date][lane_id][start_peak] = [lst_t_results[-1], lst_c_results[-1], lst_v_c_results[-1]]
                 else:
-                    print(f'{P_c} {day_date} {start_peak} {lane_id}', k_mixed_critical, lst_k_results[-1], k_mixed_jam)
+                    # print(f'{P_c} {day_date} {start_peak} {lane_id}', k_mixed_critical, lst_k_results[-1], k_mixed_jam)
                     lst_summary_table[day_date][lane_id][start_peak] = [None,None,None]
         for day in lst_summary_table:
             df_tmp = pd.DataFrame()
