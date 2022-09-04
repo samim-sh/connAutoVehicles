@@ -146,16 +146,16 @@ if __name__ == '__main__':
     os.makedirs(f'/home/samim/pycharm_projects/paper/holy_moly/c', exist_ok=True)
     os.makedirs(f'/home/samim/pycharm_projects/paper/holy_moly/v_c', exist_ok=True)
     os.makedirs(f'/home/samim/pycharm_projects/paper/holy_moly/k', exist_ok=True)
-    sample_size = 4000
-    montecarlo_iteration = 50
+    sample_size = 40000
+    montecarlo_iteration = 10000
 
     spacing_headway = 2
     vehicle_length = 4.2
-    xl = pd.ExcelFile('summary_5min_period.xlsx')
-    xl_speed = pd.ExcelFile('speed_.xlsx')
+    xl = pd.ExcelFile('datasets/summary_5min_period.xlsx')
+    xl_speed = pd.ExcelFile('datasets/speed_.xlsx')
 
     xl_write = pd.ExcelWriter('holy_moly/final_result.xlsx', engine='openpyxl')
-    xl_dist_headway = pd.ExcelFile('dist_headway.xlsx')
+    xl_dist_headway = pd.ExcelFile('datasets/dist_headway.xlsx')
     """
     a = [pd.Series(xl_dist_headway.parse(each_sheet).Parameters.values,index=xl_dist_headway.parse(each_sheet).Distribution).to_dict() for each_sheet in xl_dist_headway.sheet_names]
     {i:j for b in a for i,j in b.items()}
@@ -172,7 +172,7 @@ if __name__ == '__main__':
     ('Normal', 'µ= 200.000, σ= 147.132'), 
     ('Weibull (2)', 'β= 1.166, γ= 7.293')]"""
 
-    xl_dist_speed = pd.ExcelFile('dist_speed.xlsx')
+    xl_dist_speed = pd.ExcelFile('datasets/dist_speed.xlsx')
     """
     [('****', '****'),
     ('Beta (4)', 'α= 1.902, β= 5.120, c=80.505, d= 134.580'),
