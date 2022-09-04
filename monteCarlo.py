@@ -139,6 +139,7 @@ def ml_fit():
     # train & test set
     reg = lst_reg[day_date]
     reg.fit(x.values, y.values.ravel())
+    return reg
 
 
 if __name__ == '__main__':
@@ -193,17 +194,23 @@ if __name__ == '__main__':
         df_writer = pd.DataFrame()
         lst_summary_table = defaultdict(lambda: defaultdict(dict))
         print(dt.datetime.now(), P_c)
+        day_before = ''
         for each_sheet in xl_dist_headway.sheet_names[:]:
 
-            # print(each_sheet)
+            print(each_sheet)
             day_date, lane_id = each_sheet.split('_')
             os.makedirs(f'{current_dir}/holy_moly/{day_date}/{lane_id}', exist_ok=True)
             dict_summary_table[day_date] = {i:dict() for i in range(1,6)}
             df_dist_table_headway = xl_dist_headway.parse(each_sheet, parse_dates=['Time', 'To'])
             df_dist_table_speed = xl_dist_speed.parse(each_sheet, parse_dates=['Time', 'To'])
             df_day_date = xl.parse(day_date.split('_')[0])
-             # ML fitting
-            reg = ml_fit()
+            if day_date == day_before:
+                print('pass', day_date, day_before)
+                pass
+            else:
+                print(day_date, day_before)
+                # ML fitting
+                reg = ml_fit()
             for indx_row, each_hour in df_dist_table_headway[:].iterrows():
                 start_peak, end_peak = each_hour.Time.time(), each_hour.To.time()
                 if end_peak == dt.time(0,0,0):
