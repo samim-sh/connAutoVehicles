@@ -224,7 +224,7 @@ if __name__ == '__main__':
 
                 dist_type = df_dist_table_speed.at[indx_row, 'Distribution']
                 params = df_dist_table_speed.at[indx_row, 'Parameters']
-                speed_sample = random_sample_data(dist_type, params, 'speed', sample_size, df_speed.speed)
+                speed_sample = random_sample_data(dist_type, params, 'speed', sample_size, df_speed.Speed)
                 N_c = round(P_c * N_mix)
                 if N_c == 0:
                     N_c = math.ceil(P_c * N_mix)
