@@ -142,10 +142,11 @@ def ml_fit():
 
 
 if __name__ == '__main__':
-    os.makedirs(f'/home/samim/pycharm_projects/paper/holy_moly/t', exist_ok=True)
-    os.makedirs(f'/home/samim/pycharm_projects/paper/holy_moly/c', exist_ok=True)
-    os.makedirs(f'/home/samim/pycharm_projects/paper/holy_moly/v_c', exist_ok=True)
-    os.makedirs(f'/home/samim/pycharm_projects/paper/holy_moly/k', exist_ok=True)
+    current_dir = os.getcwd()
+    os.makedirs(f'{current_dir}/holy_moly/t', exist_ok=True)
+    os.makedirs(f'{current_dir}/holy_moly/c', exist_ok=True)
+    os.makedirs(f'{current_dir}/holy_moly/v_c', exist_ok=True)
+    os.makedirs(f'{current_dir}/holy_moly/k', exist_ok=True)
     sample_size = 40000
     montecarlo_iteration = 10000
 
@@ -196,7 +197,7 @@ if __name__ == '__main__':
 
             print(each_sheet)
             day_date, lane_id = each_sheet.split('_')
-            os.makedirs(f'/home/samim/pycharm_projects/paper/holy_moly/{day_date}/{lane_id}', exist_ok=True)
+            os.makedirs(f'{current_dir}/holy_moly/{day_date}/{lane_id}', exist_ok=True)
             dict_summary_table[day_date] = {i:dict() for i in range(1,6)}
             df_dist_table_headway = xl_dist_headway.parse(each_sheet, parse_dates=['Time', 'To'])
             df_dist_table_speed = xl_dist_speed.parse(each_sheet, parse_dates=['Time', 'To'])
