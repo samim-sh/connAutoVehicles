@@ -1,6 +1,9 @@
-datasets
+datasets/pdf
+datasets/xlsx
+datasets/speed_.xlsx
 trash
 venv
 .idea
 screen
 holy_moly
+.ipynb_checkpoints
