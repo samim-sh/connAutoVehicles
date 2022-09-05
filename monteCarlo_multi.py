@@ -208,7 +208,7 @@ def func_to_multi(eee):
 	df_car_queue.loc[(df_car_queue.queue == 'h') & (df_car_queue.queue_shift_neg_1 == 'h'), 'P_mn'] = 1 - P_c * (
 				1 - P_I)  # hh
 	# h_mn
-	print('k_mixed_critical')
+	# print('k_mixed_critical')
 	df_car_queue['h_mn'] = None
 	h_cc_sample, h_hh_sample, h_ch_sample, h_hc_sample = np.array([10]), np.array([5]), np.array([7]), np.array([9]),
 	while any(np.any(e_e >= h_hh_sample) for e_e in h_cc_sample) or\
@@ -234,7 +234,7 @@ def func_to_multi(eee):
 	k_mixed_jam = 1 / (spacing_headway * (1 - P_c) + vehicle_length)
 
 	# monteCarlo for K-mixed
-	print('monteCarlo for K-mixed')
+	# print('monteCarlo for K-mixed')
 	lst_k_results = []
 	sum_k = 0
 	for iterate in range(montecarlo_iteration):
@@ -266,7 +266,7 @@ def func_to_multi(eee):
 	plot_iteration('k', lst_k_results)
 	if k_mixed_jam > lst_k_results[-1] > k_mixed_critical:
 		# monteCarlo for C-mixed
-		print('monteCarlo for C-mixed')
+		# print('monteCarlo for C-mixed')
 		dict_t, dict_c, dict_v_c = {}, {}, {}
 		lst_t_results, lst_c_results, lst_v_c_results = [], [], []
 		sum_t_predicted, sum_c_predicted, sum_v_c_predicted, = 0, 0, 0
