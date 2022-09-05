@@ -163,11 +163,15 @@ def func_to_multi(eee):
 		sns.histplot(df_speed_hour.timeHeadway, kde=True, ax=ax_real_time)
 		sns.histplot(df_speed_hour.Speed, kde=True, ax=ax_real_speed)
 
+	# timeHeadway sample
 	dist_type = df_dist_table_headway.at[indx_row, 'Distribution']
 	params = df_dist_table_headway.at[indx_row, 'Parameters']
-	timeHeadway_sample = random_sample_data(dist_type, params, 'timeHeadway', sample_size, df_speed.timeHeadway)
-	timeHeadway_sample_cc = np.random.normal(1.2, .15, size=sample_size)
+	timeHeadway_sample_hh = random_sample_data(dist_type, params, 'timeHeadway', sample_size, df_speed.timeHeadway)
+	timeHeadway_sample_cc = np.random.triangular(.3, .9, 1.5, size=sample_size)
+	timeHeadway_sample_hc = np.random.triangular(.6, .9, 2.2, size=sample_size)
+	timeHeadway_sample_ch = np.random.triangular(.45, .9, 2, size=sample_size)
 
+	# speed sample
 	dist_type = df_dist_table_speed.at[indx_row, 'Distribution']
 	params = df_dist_table_speed.at[indx_row, 'Parameters']
 	speed_sample = random_sample_data(dist_type, params, 'speed', sample_size, df_speed.Speed)
@@ -204,10 +208,14 @@ def func_to_multi(eee):
 				1 - P_I)  # hh
 	# h_mn
 	df_car_queue['h_mn'] = None
-	h_cc_sample = np.random.choice(timeHeadway_sample_cc, n_cc, replace=False)
-	h_hc_sample = np.random.choice(timeHeadway_sample, n_hc, replace=False)
-	h_ch_sample = np.random.choice(timeHeadway_sample, n_ch, replace=False)
-	h_hh_sample = np.random.choice(timeHeadway_sample, n_hh, replace=False)
+	h_cc_sample, h_hh_sample, h_ch_sample, h_hc_sample = np.array([10]), np.array([5]), np.array([7]), np.array([9]),
+	while any(np.any(e_e >= h_hh_sample) for e_e in h_cc_sample) or\
+	any(np.any(e_e <= h_cc_sample) for e_e in h_ch_sample) or\
+	any(np.any(e_e <= h_hc_sample) for e_e in h_hh_sample):
+		h_cc_sample = np.random.choice(timeHeadway_sample_cc, n_cc, replace=False)
+		h_hc_sample = np.random.choice(timeHeadway_sample_hc, n_hc, replace=False)
+		h_ch_sample = np.random.choice(timeHeadway_sample_ch, n_ch, replace=False)
+		h_hh_sample = np.random.choice(timeHeadway_sample_hh, n_hh, replace=False)
 	df_car_queue.loc[
 		(df_car_queue.queue == 'c') & (df_car_queue.queue_shift_neg_1 == 'c'), 'h_mn'] = h_cc_sample  # cc
 	df_car_queue.loc[
@@ -225,10 +233,14 @@ def func_to_multi(eee):
 	sum_k = 0
 	for iterate in range(montecarlo_iteration):
 		df_car_queue['h_mn_kMonteCarlo'] = None
-		h_cc_sample = np.random.choice(timeHeadway_sample_cc, n_cc, replace=False)
-		h_hc_sample = np.random.choice(timeHeadway_sample, n_hc, replace=False)
-		h_ch_sample = np.random.choice(timeHeadway_sample, n_ch, replace=False)
-		h_hh_sample = np.random.choice(timeHeadway_sample, n_hh, replace=False)
+		h_cc_sample, h_hh_sample, h_ch_sample, h_hc_sample = np.array([10]),np.array([5]),np.array([7]),np.array([9]),
+		while any(np.any(e_e >= h_hh_sample) for e_e in h_cc_sample) or \
+		        any(np.any(e_e <= h_cc_sample) for e_e in h_ch_sample) or \
+		        any(np.any(e_e <= h_hc_sample) for e_e in h_hh_sample):
+			h_cc_sample = np.random.choice(timeHeadway_sample_cc, n_cc, replace=False)
+			h_hc_sample = np.random.choice(timeHeadway_sample_hc, n_hc, replace=False)
+			h_ch_sample = np.random.choice(timeHeadway_sample_ch, n_ch, replace=False)
+			h_hh_sample = np.random.choice(timeHeadway_sample_hh, n_hh, replace=False)
 		df_car_queue.loc[(df_car_queue.queue == 'c') & (
 					df_car_queue.queue_shift_neg_1 == 'c'), 'h_mn_kMonteCarlo'] = h_cc_sample  # cc
 		df_car_queue.loc[(df_car_queue.queue == 'h') & (
@@ -249,8 +261,16 @@ def func_to_multi(eee):
 		lst_t_results, lst_c_results, lst_v_c_results = [], [], []
 		sum_t_predicted, sum_c_predicted, sum_v_c_predicted, = 0, 0, 0
 		for iterate in range(montecarlo_iteration):
-			h_ch, h_hc, h_hh = np.random.choice(timeHeadway_sample, size=3, replace=False)
-			h_cc = np.random.choice(timeHeadway_sample_cc, replace=False)
+
+			h_cc, h_hh, h_ch, h_hc = np.array([10]), np.array([5]), np.array([7]), np.array(
+				[9]),
+			while any(np.any(e_e >= h_hh_sample) for e_e in h_cc_sample) or \
+					any(np.any(e_e <= h_cc_sample) for e_e in h_ch_sample) or \
+					any(np.any(e_e <= h_hc_sample) for e_e in h_hh_sample):
+				h_hh = np.random.choice(timeHeadway_sample_hh, size=1, replace=False)
+				h_hc = np.random.choice(timeHeadway_sample_hc, size=1, replace=False)
+				h_ch = np.random.choice(timeHeadway_sample_ch, size=1, replace=False)
+				h_cc = np.random.choice(timeHeadway_sample_cc, replace=False)
 			if (h_cc, h_ch, h_hc, h_hh) not in dict_t:
 				C_m = 3600 / (P_c * P_I * h_cc + P_c * (1 - P_I) * h_ch + P_h * (1 - P_HH) * h_hc + P_h * P_HH * h_hh)
 				v_c_ratio = (N_mix / C_m) ** 2
@@ -286,8 +306,8 @@ if __name__ == '__main__':
 	os.makedirs(f'{current_dir}/holy_moly/c', exist_ok=True)
 	os.makedirs(f'{current_dir}/holy_moly/v_c', exist_ok=True)
 	os.makedirs(f'{current_dir}/holy_moly/k', exist_ok=True)
-	sample_size = 5000
-	montecarlo_iteration = 1000
+	sample_size = 10000
+	montecarlo_iteration = 4000
 
 	spacing_headway = 2
 	vehicle_length = 4.2
@@ -331,11 +351,11 @@ if __name__ == '__main__':
 		dict_summary_table = {}
 		df_writer = pd.DataFrame()
 		lst_summary_table = defaultdict(lambda: defaultdict(dict))
-		print(dt.datetime.now(), P_c)
+		print('P_c', dt.datetime.now(), P_c)
 		day_before = ''
 		for each_sheet in xl_dist_headway.sheet_names[:]:
 
-			print(each_sheet)
+			print('each_sheet', dt.datetime.now(), each_sheet)
 			day_date, lane_id = each_sheet.split('_')
 			os.makedirs(f'{current_dir}/holy_moly/{day_date}/{lane_id}', exist_ok=True)
 			dict_summary_table[day_date] = {i:dict() for i in range(1,6)}
@@ -343,10 +363,8 @@ if __name__ == '__main__':
 			df_dist_table_speed = xl_dist_speed.parse(each_sheet, parse_dates=['Time', 'To'])
 			df_day_date = xl.parse(day_date.split('_')[0])
 			if day_date == day_before:
-				# print('pass', day_date, day_before)
 				day_before = day_date
 			else:
-				# print(day_date, day_before)
 				day_before = day_date
 				# ML fitting
 				reg = ml_fit()
@@ -361,8 +379,8 @@ if __name__ == '__main__':
 				lst_summary_table[day_date][lane_id][start_peak] = i[1]
 			pool.terminate()
 			pool.join()
-			print(each_sheet, time.time() - t1)
-			# <-- start pool
+			print('pool', dt.datetime.now(), each_sheet, time.time() - t1)
+			# <-- end pool
 
 		for day in lst_summary_table:
 			df_tmp = pd.DataFrame()
