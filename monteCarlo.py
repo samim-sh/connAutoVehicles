@@ -297,7 +297,7 @@ if __name__ == '__main__':
                         # print('2')
                     df_car_queue.loc[(df_car_queue.queue == 'c') & (df_car_queue.queue_shift_neg_1 == 'c'), 'h_mn_kMonteCarlo'] = h_cc_sample  # cc
                     df_car_queue.loc[(df_car_queue.queue == 'h') & (df_car_queue.queue_shift_neg_1 == 'c'), 'h_mn_kMonteCarlo'] = h_hc_sample  # hc
-                    df_car_queue.loc[(df_car_queue.queue == 'c') & (df_car_queue.queue_shift_neg_1 == 'h'), 'h_mn_kMonteCarlo'] = h_cc_sample  # ch
+                    df_car_queue.loc[(df_car_queue.queue == 'c') & (df_car_queue.queue_shift_neg_1 == 'h'), 'h_mn_kMonteCarlo'] = h_ch_sample  # ch
                     df_car_queue.loc[(df_car_queue.queue == 'h') & (df_car_queue.queue_shift_neg_1 == 'h'), 'h_mn_kMonteCarlo'] = h_hh_sample  # hh
                     k = 1 / (np.random.choice(speed_sample, replace=False) * (P_c * (df_car_queue.P_mn*df_car_queue.h_mn_kMonteCarlo).sum()) + spacing_headway * P_h + vehicle_length)
                     sum_k += k
