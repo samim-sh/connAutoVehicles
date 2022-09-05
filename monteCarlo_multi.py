@@ -193,6 +193,8 @@ def func_to_multi(eee):
 		n_hh = sum((df_car_queue.queue == 'h') & (df_car_queue.queue_shift_neg_1 == 'h'))
 		n_hc = sum((df_car_queue.queue == 'h') & (df_car_queue.queue_shift_neg_1 == 'c'))
 		n_ch = sum((df_car_queue.queue == 'c') & (df_car_queue.queue_shift_neg_1 == 'h'))
+
+	# print(f'n_cc{n_cc},n_hh{n_hh},n_hc{n_hc},n_ch{n_ch}')
 	# if (n_cc + n_ch)==0:
 	#     print(f'N_mix {N_mix} - N_c {N_c} - N_h {N_h} - n_cc {n_cc} - n_ch {n_ch}')
 	P_I = n_cc / (n_cc + n_ch)
@@ -210,14 +212,14 @@ def func_to_multi(eee):
 	# h_mn
 	# print('k_mixed_critical')
 	df_car_queue['h_mn'] = None
-	h_cc_sample, h_hh_sample, h_ch_sample, h_hc_sample = np.array([10]), np.array([5]), np.array([7]), np.array([9]),
-	while any(np.any(e_e >= h_hh_sample) for e_e in h_cc_sample) or\
-	any(np.any(e_e <= h_cc_sample) for e_e in h_ch_sample) or\
-	any(np.any(e_e <= h_hc_sample) for e_e in h_hh_sample):
-		h_cc_sample = np.random.choice(timeHeadway_sample_cc, n_cc, replace=False)
-		h_hc_sample = np.random.choice(timeHeadway_sample_hc, n_hc, replace=False)
-		h_ch_sample = np.random.choice(timeHeadway_sample_ch, n_ch, replace=False)
-		h_hh_sample = np.random.choice(timeHeadway_sample_hh, n_hh, replace=False)
+	# h_cc_sample, h_hh_sample, h_ch_sample, h_hc_sample = np.array([10]), np.array([5]), np.array([7]), np.array([9]),
+	# while any(np.any(e_e >= h_hh_sample) for e_e in h_cc_sample) or\
+	# any(np.any(e_e <= h_cc_sample) for e_e in h_ch_sample) or\
+	# any(np.any(e_e <= h_hc_sample) for e_e in h_hh_sample):
+	h_cc_sample = np.random.choice(timeHeadway_sample_cc, n_cc, replace=False)
+	h_hc_sample = np.random.choice(timeHeadway_sample_hc, n_hc, replace=False)
+	h_ch_sample = np.random.choice(timeHeadway_sample_ch, n_ch, replace=False)
+	h_hh_sample = np.random.choice(timeHeadway_sample_hh, n_hh, replace=False)
 		# print('while 212: ', any(np.any(e_e >= h_hh_sample) for e_e in h_cc_sample),
 		# 		any(np.any(e_e <= h_cc_sample) for e_e in h_ch_sample),
 		# 		any(np.any(e_e <= h_hc_sample) for e_e in h_hh_sample))
@@ -239,14 +241,14 @@ def func_to_multi(eee):
 	sum_k = 0
 	for iterate in range(montecarlo_iteration):
 		df_car_queue['h_mn_kMonteCarlo'] = None
-		h_cc_sample, h_hh_sample, h_ch_sample, h_hc_sample = np.array([10]),np.array([5]),np.array([7]),np.array([9]),
-		while any(np.any(e_e >= h_hh_sample) for e_e in h_cc_sample) or \
-		        any(np.any(e_e <= h_cc_sample) for e_e in h_ch_sample) or \
-		        any(np.any(e_e <= h_hc_sample) for e_e in h_hh_sample):
-			h_cc_sample = np.random.choice(timeHeadway_sample_cc, n_cc, replace=False)
-			h_hc_sample = np.random.choice(timeHeadway_sample_hc, n_hc, replace=False)
-			h_ch_sample = np.random.choice(timeHeadway_sample_ch, n_ch, replace=False)
-			h_hh_sample = np.random.choice(timeHeadway_sample_hh, n_hh, replace=False)
+		# h_cc_sample, h_hh_sample, h_ch_sample, h_hc_sample = np.array([10]),np.array([5]),np.array([7]),np.array([9]),
+		# while any(np.any(e_e >= h_hh_sample) for e_e in h_cc_sample) or \
+		#         any(np.any(e_e <= h_cc_sample) for e_e in h_ch_sample) or \
+		#         any(np.any(e_e <= h_hc_sample) for e_e in h_hh_sample):
+		h_cc_sample = np.random.choice(timeHeadway_sample_cc, n_cc, replace=False)
+		h_hc_sample = np.random.choice(timeHeadway_sample_hc, n_hc, replace=False)
+		h_ch_sample = np.random.choice(timeHeadway_sample_ch, n_ch, replace=False)
+		h_hh_sample = np.random.choice(timeHeadway_sample_hh, n_hh, replace=False)
 			# print('while 240: ', any(np.any(e_e >= h_hh_sample) for e_e in h_cc_sample),
 			# 	  any(np.any(e_e <= h_cc_sample) for e_e in h_ch_sample),
 			# 	  any(np.any(e_e <= h_hc_sample) for e_e in h_hh_sample))
@@ -272,14 +274,14 @@ def func_to_multi(eee):
 		sum_t_predicted, sum_c_predicted, sum_v_c_predicted, = 0, 0, 0
 		for iterate in range(montecarlo_iteration):
 
-			h_cc, h_hh, h_ch, h_hc = np.array([10]), np.array([5]), np.array([7]), np.array([9]),
-			while any(np.any(e_e >= h_hh) for e_e in h_cc) or \
-					any(np.any(e_e <= h_cc) for e_e in h_ch) or \
-					any(np.any(e_e <= h_hc) for e_e in h_hh):
-				h_hh = np.random.choice(timeHeadway_sample_hh, replace=False)
-				h_hc = np.random.choice(timeHeadway_sample_hc, replace=False)
-				h_ch = np.random.choice(timeHeadway_sample_ch, replace=False)
-				h_cc = np.random.choice(timeHeadway_sample_cc, replace=False)
+			# h_cc, h_hh, h_ch, h_hc = np.array([10]), np.array([5]), np.array([7]), np.array([9]),
+			# while any(np.any(e_e >= h_hh) for e_e in h_cc) or \
+			# 		any(np.any(e_e <= h_cc) for e_e in h_ch) or \
+			# 		any(np.any(e_e <= h_hc) for e_e in h_hh):
+			h_hh = np.random.choice(timeHeadway_sample_hh, replace=False)
+			h_hc = np.random.choice(timeHeadway_sample_hc, replace=False)
+			h_ch = np.random.choice(timeHeadway_sample_ch, replace=False)
+			h_cc = np.random.choice(timeHeadway_sample_cc, replace=False)
 				# print('while 280: ', any(np.any(e_e >= h_hh) for e_e in h_cc),
 				# 	  any(np.any(e_e <= h_cc) for e_e in h_ch),
 				# 	  any(np.any(e_e <= h_hc) for e_e in h_hh))
