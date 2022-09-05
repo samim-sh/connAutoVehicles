@@ -23,10 +23,10 @@ def random_sample_data(dist_type, params, typ, s, d):
         mu, sig = map(float, re.findall(r'\d+\.\d+', params))
         sample = np.random.lognormal(mean=mu, sigma=sig, size=s)
 
-    elif 'Beta' in dist_type:
-        a, b, loc, scale = stats.beta.fit(d)
-        # alpha, beta, loc, scale = map(float, re.findall(r'\d+\.\d+', params))
-        sample = stats.beta.rvs(a, b, loc, scale, size=s)
+    # elif 'Beta' in dist_type:
+    #     a, b, loc, scale = stats.beta.fit(d)
+    #     # alpha, beta, loc, scale = map(float, re.findall(r'\d+\.\d+', params))
+    #     sample = stats.beta.rvs(a, b, loc, scale, size=s)
 
     elif 'Weibull' in dist_type:
         c, lam = map(float, re.findall(r'\d+\.\d+', params))
@@ -148,8 +148,8 @@ if __name__ == '__main__':
     os.makedirs(f'{current_dir}/holy_moly/c', exist_ok=True)
     os.makedirs(f'{current_dir}/holy_moly/v_c', exist_ok=True)
     os.makedirs(f'{current_dir}/holy_moly/k', exist_ok=True)
-    sample_size = 40000
-    montecarlo_iteration = 10000
+    sample_size = 5000
+    montecarlo_iteration = 1000
 
     spacing_headway = 2
     vehicle_length = 4.2
@@ -206,9 +206,10 @@ if __name__ == '__main__':
             df_day_date = xl.parse(day_date.split('_')[0])
             if day_date == day_before:
                 print('pass', day_date, day_before)
-                pass
+                day_before = day_date
             else:
                 print(day_date, day_before)
+                day_before = day_date
                 # ML fitting
                 reg = ml_fit()
             for indx_row, each_hour in df_dist_table_headway[:].iterrows():
@@ -249,8 +250,8 @@ if __name__ == '__main__':
                     n_hh = sum((df_car_queue.queue=='h') & (df_car_queue.queue_shift_neg_1=='h'))
                     n_hc = sum((df_car_queue.queue=='h') & (df_car_queue.queue_shift_neg_1=='c'))
                     n_ch = sum((df_car_queue.queue=='c') & (df_car_queue.queue_shift_neg_1=='h'))
-                    if (n_cc + n_ch)==0:
-                        print(f'N_mix {N_mix} - N_c {N_c} - N_h {N_h} - n_cc {n_cc} - n_ch {n_ch}')
+                    # if (n_cc + n_ch)==0:
+                    #     print(f'N_mix {N_mix} - N_c {N_c} - N_h {N_h} - n_cc {n_cc} - n_ch {n_ch}')
                 P_I = n_cc / (n_cc + n_ch)
                 P_HH = n_hh / (n_hh + n_hc)
                 # ρ_mn
@@ -261,12 +262,19 @@ if __name__ == '__main__':
                 df_car_queue.loc[(df_car_queue.queue=='h') & (df_car_queue.queue_shift_neg_1=='h'),'P_mn'] = 1 - P_c * (1 - P_I)  #hh
                 # h_mn
                 df_car_queue['h_mn'] = None
+                # h_cc_sample, h_hh_sample, h_ch_sample, h_hc_sample = np.array([10]), np.array([5]), np.array([7]), np.array([9]),
+                # while any(np.any(e_e >= h_hh_sample) for e_e in h_cc_sample) or\
+                    # any(np.any(e_e <= h_cc_sample) for e_e in h_ch_sample) or\
+                    # any(np.any(e_e <= h_hc_sample) for e_e in h_hh_sample):
                 h_cc_sample = np.random.choice(timeHeadway_sample_cc, n_cc, replace=False)
-                df_car_queue.loc[(df_car_queue.queue=='c') & (df_car_queue.queue_shift_neg_1=='c'),'h_mn'] = h_cc_sample  #cc
-                h_hh_sample = np.random.choice(timeHeadway_sample, n_hh+n_ch+n_hc, replace=False)
-                df_car_queue.loc[((df_car_queue.queue=='h') & ((df_car_queue.queue_shift_neg_1=='h')|(df_car_queue.queue_shift_neg_1=='c')))|
-                                 ((df_car_queue.queue=='c') & (df_car_queue.queue_shift_neg_1=='h')),'h_mn'] = h_hh_sample  #hh hc ch
-
+                h_hc_sample = np.random.choice(timeHeadway_sample, n_hc, replace=False)
+                h_ch_sample = np.random.choice(timeHeadway_sample, n_ch, replace=False)
+                h_hh_sample = np.random.choice(timeHeadway_sample, n_hh, replace=False)
+                    # print('1')
+                df_car_queue.loc[(df_car_queue.queue == 'c') & (df_car_queue.queue_shift_neg_1 == 'c'), 'h_mn_kMonteCarlo'] = h_cc_sample  # cc
+                df_car_queue.loc[(df_car_queue.queue == 'h') & (df_car_queue.queue_shift_neg_1 == 'c'), 'h_mn_kMonteCarlo'] = h_hc_sample  # hc
+                df_car_queue.loc[(df_car_queue.queue == 'c') & (df_car_queue.queue_shift_neg_1 == 'h'), 'h_mn_kMonteCarlo'] = h_hc_sample  # ch
+                df_car_queue.loc[(df_car_queue.queue == 'h') & (df_car_queue.queue_shift_neg_1 == 'h'), 'h_mn_kMonteCarlo'] = h_hc_sample  # hh
                 k_mixed_critical = 1 / (100 * P_c * (df_car_queue.P_mn*df_car_queue.h_mn).sum() + spacing_headway * (1 - P_c) + vehicle_length)
                 k_mixed_jam = 1 / (spacing_headway * (1 - P_c) + vehicle_length)
 
@@ -276,11 +284,19 @@ if __name__ == '__main__':
                 sum_k = 0
                 for iterate in range(montecarlo_iteration):
                     df_car_queue['h_mn_kMonteCarlo'] = None
+                    # h_cc_sample, h_hh_sample, h_ch_sample, h_hc_sample = np.array([10]),np.array([5]),np.array([7]),np.array([9]),
+                    # while any(np.any(e_e >= h_hh_sample) for e_e in h_cc_sample) or \
+                    #         any(np.any(e_e <= h_cc_sample) for e_e in h_ch_sample) or \
+                    #         any(np.any(e_e <= h_hc_sample) for e_e in h_hh_sample):
                     h_cc_sample = np.random.choice(timeHeadway_sample_cc, n_cc, replace=False)
+                    h_hc_sample = np.random.choice(timeHeadway_sample, n_hc, replace=False)
+                    h_ch_sample = np.random.choice(timeHeadway_sample, n_ch, replace=False)
+                    h_hh_sample = np.random.choice(timeHeadway_sample, n_hh, replace=False)
+                        # print('2')
                     df_car_queue.loc[(df_car_queue.queue == 'c') & (df_car_queue.queue_shift_neg_1 == 'c'), 'h_mn_kMonteCarlo'] = h_cc_sample  # cc
-                    h_hh_sample = np.random.choice(timeHeadway_sample, n_hh + n_ch + n_hc, replace=False)
-                    df_car_queue.loc[((df_car_queue.queue == 'h') & ((df_car_queue.queue_shift_neg_1 == 'h') | (df_car_queue.queue_shift_neg_1 == 'c'))) |
-                                     ((df_car_queue.queue == 'c') & (df_car_queue.queue_shift_neg_1 == 'h')), 'h_mn_kMonteCarlo'] = h_hh_sample  # hh hc ch
+                    df_car_queue.loc[(df_car_queue.queue == 'h') & (df_car_queue.queue_shift_neg_1 == 'c'), 'h_mn_kMonteCarlo'] = h_hc_sample  # hc
+                    df_car_queue.loc[(df_car_queue.queue == 'c') & (df_car_queue.queue_shift_neg_1 == 'h'), 'h_mn_kMonteCarlo'] = h_hc_sample  # ch
+                    df_car_queue.loc[(df_car_queue.queue == 'h') & (df_car_queue.queue_shift_neg_1 == 'h'), 'h_mn_kMonteCarlo'] = h_hc_sample  # hh
                     k = 1 / (np.random.choice(speed_sample, replace=False) * (P_c * (df_car_queue.P_mn*df_car_queue.h_mn_kMonteCarlo).sum()) + spacing_headway * P_h + vehicle_length)
                     sum_k += k
                     avg_k = sum_k / (iterate + 1)
