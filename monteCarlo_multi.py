@@ -209,13 +209,13 @@ def func_to_multi(eee):
 	h_ch_sample = np.random.choice(timeHeadway_sample, n_ch, replace=False)
 	h_hh_sample = np.random.choice(timeHeadway_sample, n_hh, replace=False)
 	df_car_queue.loc[
-		(df_car_queue.queue == 'c') & (df_car_queue.queue_shift_neg_1 == 'c'), 'h_mn_kMonteCarlo'] = h_cc_sample  # cc
+		(df_car_queue.queue == 'c') & (df_car_queue.queue_shift_neg_1 == 'c'), 'h_mn'] = h_cc_sample  # cc
 	df_car_queue.loc[
-		(df_car_queue.queue == 'h') & (df_car_queue.queue_shift_neg_1 == 'c'), 'h_mn_kMonteCarlo'] = h_hc_sample  # hc
+		(df_car_queue.queue == 'h') & (df_car_queue.queue_shift_neg_1 == 'c'), 'h_mn'] = h_hc_sample  # hc
 	df_car_queue.loc[
-		(df_car_queue.queue == 'c') & (df_car_queue.queue_shift_neg_1 == 'h'), 'h_mn_kMonteCarlo'] = h_ch_sample  # ch
+		(df_car_queue.queue == 'c') & (df_car_queue.queue_shift_neg_1 == 'h'), 'h_mn'] = h_ch_sample  # ch
 	df_car_queue.loc[
-		(df_car_queue.queue == 'h') & (df_car_queue.queue_shift_neg_1 == 'h'), 'h_mn_kMonteCarlo'] = h_hh_sample  # hh
+		(df_car_queue.queue == 'h') & (df_car_queue.queue_shift_neg_1 == 'h'), 'h_mn'] = h_hh_sample  # hh
 	k_mixed_critical = 1 / (100 * P_c * (df_car_queue.P_mn * df_car_queue.h_mn).sum() + spacing_headway * (
 				1 - P_c) + vehicle_length)
 	k_mixed_jam = 1 / (spacing_headway * (1 - P_c) + vehicle_length)

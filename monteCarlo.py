@@ -206,10 +206,10 @@ if __name__ == '__main__':
             df_dist_table_speed = xl_dist_speed.parse(each_sheet, parse_dates=['Time', 'To'])
             df_day_date = xl.parse(day_date.split('_')[0])
             if day_date == day_before:
-                print('pass', day_date, day_before)
+                # print('pass', day_date, day_before)
                 day_before = day_date
             else:
-                print(day_date, day_before)
+                # print(day_date, day_before)
                 day_before = day_date
                 # ML fitting
                 reg = ml_fit()
@@ -273,10 +273,10 @@ if __name__ == '__main__':
                 h_ch_sample = np.random.choice(timeHeadway_sample, n_ch, replace=False)
                 h_hh_sample = np.random.choice(timeHeadway_sample, n_hh, replace=False)
                     # print('1')
-                df_car_queue.loc[(df_car_queue.queue == 'c') & (df_car_queue.queue_shift_neg_1 == 'c'), 'h_mn_kMonteCarlo'] = h_cc_sample  # cc
-                df_car_queue.loc[(df_car_queue.queue == 'h') & (df_car_queue.queue_shift_neg_1 == 'c'), 'h_mn_kMonteCarlo'] = h_hc_sample  # hc
-                df_car_queue.loc[(df_car_queue.queue == 'c') & (df_car_queue.queue_shift_neg_1 == 'h'), 'h_mn_kMonteCarlo'] = h_ch_sample  # ch
-                df_car_queue.loc[(df_car_queue.queue == 'h') & (df_car_queue.queue_shift_neg_1 == 'h'), 'h_mn_kMonteCarlo'] = h_hh_sample  # hh
+                df_car_queue.loc[(df_car_queue.queue == 'c') & (df_car_queue.queue_shift_neg_1 == 'c'), 'h_mn'] = h_cc_sample  # cc
+                df_car_queue.loc[(df_car_queue.queue == 'h') & (df_car_queue.queue_shift_neg_1 == 'c'), 'h_mn'] = h_hc_sample  # hc
+                df_car_queue.loc[(df_car_queue.queue == 'c') & (df_car_queue.queue_shift_neg_1 == 'h'), 'h_mn'] = h_ch_sample  # ch
+                df_car_queue.loc[(df_car_queue.queue == 'h') & (df_car_queue.queue_shift_neg_1 == 'h'), 'h_mn'] = h_hh_sample  # hh
                 k_mixed_critical = 1 / (100 * P_c * (df_car_queue.P_mn*df_car_queue.h_mn).sum() + spacing_headway * (1 - P_c) + vehicle_length)
                 k_mixed_jam = 1 / (spacing_headway * (1 - P_c) + vehicle_length)
 
@@ -335,9 +335,11 @@ if __name__ == '__main__':
                     plot_iteration('t', lst_t_results)
                     plot_iteration('c', lst_c_results)
                     plot_iteration('v_c', lst_v_c_results)
+                    print(start_peak,[lst_t_results[-1], lst_c_results[-1], lst_v_c_results[-1]])
                     lst_summary_table[day_date][lane_id][start_peak] = [lst_t_results[-1], lst_c_results[-1], lst_v_c_results[-1]]
                 else:
                     # print(f'{P_c} {day_date} {start_peak} {lane_id}', k_mixed_critical, lst_k_results[-1], k_mixed_jam)
+                    print(start_peak,[None,None,None])
                     lst_summary_table[day_date][lane_id][start_peak] = [None,None,None]
         for day in lst_summary_table:
             df_tmp = pd.DataFrame()
