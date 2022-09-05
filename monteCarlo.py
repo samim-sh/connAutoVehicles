@@ -73,17 +73,18 @@ def random_sample_data(dist_type, params, typ, s, d):
             gmm = GMM(n_components=3)
             gmm.fit(df_speed_hour.Speed.values.reshape(-1, 1))
             sample = gmm.sample(s)[0].reshape(-1)
-    if typ == 'timeHeadway':
-        sns.histplot(sample, kde=True, ax=ax_sample_time)
-        ax_sample_time.set_title(f'{P_c} {day_date} {start_peak} {lane_id} {dist_type}')
-        fig_time.tight_layout()
-        fig_time.savefig(f'holy_moly/{day_date}/{lane_id}/timeHeadway {start_peak} {dist_type}.png')
-    else:
-        sns.histplot(sample, kde=True, ax=ax_sample_speed)
-        ax_sample_speed.set_title(f'{P_c} {day_date} {start_peak} {lane_id} {dist_type}')
-        fig_speed.tight_layout()
-        fig_speed.savefig(f'holy_moly/{day_date}/{lane_id}/speed {start_peak} {dist_type}.png')
-    plt.close()
+    if P_c == .1:
+        if typ == 'timeHeadway':
+            sns.histplot(sample, kde=True, ax=ax_sample_time)
+            ax_sample_time.set_title(f'{P_c} {day_date} {start_peak} {lane_id} {dist_type}')
+            fig_time.tight_layout()
+            fig_time.savefig(f'holy_moly/{day_date}/{lane_id}/timeHeadway {start_peak} {dist_type}.png')
+        else:
+            sns.histplot(sample, kde=True, ax=ax_sample_speed)
+            ax_sample_speed.set_title(f'{P_c} {day_date} {start_peak} {lane_id} {dist_type}')
+            fig_speed.tight_layout()
+            fig_speed.savefig(f'holy_moly/{day_date}/{lane_id}/speed {start_peak} {dist_type}.png')
+        plt.close()
 
     return sample
 
@@ -220,10 +221,11 @@ if __name__ == '__main__':
                 df_speed_hour = df_speed[(df_speed.DateTime.dt.time > dt.datetime.combine(dt.date(1,1,1),start_peak).time()) &
                                          (df_speed.DateTime.dt.time <= end_peak)]
                 N_mix = len(df_speed_hour)
-                fig_time, (ax_real_time, ax_sample_time) = plt.subplots(1,2,figsize=(16,9))
-                fig_speed, (ax_real_speed, ax_sample_speed) = plt.subplots(1,2,figsize=(16,9))
-                sns.histplot(df_speed_hour.timeHeadway, kde=True, ax=ax_real_time)
-                sns.histplot(df_speed_hour.Speed, kde=True, ax=ax_real_speed)
+                if P_c == .1:
+                    fig_time, (ax_real_time, ax_sample_time) = plt.subplots(1,2,figsize=(16,9))
+                    fig_speed, (ax_real_speed, ax_sample_speed) = plt.subplots(1,2,figsize=(16,9))
+                    sns.histplot(df_speed_hour.timeHeadway, kde=True, ax=ax_real_time)
+                    sns.histplot(df_speed_hour.Speed, kde=True, ax=ax_real_speed)
 
                 dist_type = df_dist_table_headway.at[indx_row, 'Distribution']
                 params = df_dist_table_headway.at[indx_row,'Parameters']
