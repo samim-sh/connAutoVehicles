@@ -335,11 +335,9 @@ if __name__ == '__main__':
                     plot_iteration('t', lst_t_results)
                     plot_iteration('c', lst_c_results)
                     plot_iteration('v_c', lst_v_c_results)
-                    print(start_peak,[lst_t_results[-1], lst_c_results[-1], lst_v_c_results[-1]])
                     lst_summary_table[day_date][lane_id][start_peak] = [lst_t_results[-1], lst_c_results[-1], lst_v_c_results[-1]]
                 else:
                     # print(f'{P_c} {day_date} {start_peak} {lane_id}', k_mixed_critical, lst_k_results[-1], k_mixed_jam)
-                    print(start_peak,[None,None,None])
                     lst_summary_table[day_date][lane_id][start_peak] = [None,None,None]
         for day in lst_summary_table:
             df_tmp = pd.DataFrame()
