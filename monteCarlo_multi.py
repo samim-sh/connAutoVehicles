@@ -150,6 +150,7 @@ def func_to_multi(eee):
 	indx_row, each_hour = eee
 	global df_speed_hour,start_peak,ax_sample_time,fig_time,ax_sample_speed,fig_speed
 	start_peak, end_peak = each_hour.Time.time(), each_hour.To.time()
+	print('start_peak', start_peak)
 	if end_peak == dt.time(0, 0, 0):
 		end_peak = dt.time(23, 59, 59)
 	df_speed = pd.read_excel('datasets/speed_chosen.xlsx',sheet_name=f'{day_date}_laneId_{lane_id}', usecols=['DateTime', 'timeHeadway', 'Speed'])
@@ -207,6 +208,7 @@ def func_to_multi(eee):
 	df_car_queue.loc[(df_car_queue.queue == 'h') & (df_car_queue.queue_shift_neg_1 == 'h'), 'P_mn'] = 1 - P_c * (
 				1 - P_I)  # hh
 	# h_mn
+	print('k_mixed_critical')
 	df_car_queue['h_mn'] = None
 	h_cc_sample, h_hh_sample, h_ch_sample, h_hc_sample = np.array([10]), np.array([5]), np.array([7]), np.array([9]),
 	while any(np.any(e_e >= h_hh_sample) for e_e in h_cc_sample) or\
@@ -216,6 +218,9 @@ def func_to_multi(eee):
 		h_hc_sample = np.random.choice(timeHeadway_sample_hc, n_hc, replace=False)
 		h_ch_sample = np.random.choice(timeHeadway_sample_ch, n_ch, replace=False)
 		h_hh_sample = np.random.choice(timeHeadway_sample_hh, n_hh, replace=False)
+		# print('while 212: ', any(np.any(e_e >= h_hh_sample) for e_e in h_cc_sample),
+		# 		any(np.any(e_e <= h_cc_sample) for e_e in h_ch_sample),
+		# 		any(np.any(e_e <= h_hc_sample) for e_e in h_hh_sample))
 	df_car_queue.loc[
 		(df_car_queue.queue == 'c') & (df_car_queue.queue_shift_neg_1 == 'c'), 'h_mn'] = h_cc_sample  # cc
 	df_car_queue.loc[
@@ -229,6 +234,7 @@ def func_to_multi(eee):
 	k_mixed_jam = 1 / (spacing_headway * (1 - P_c) + vehicle_length)
 
 	# monteCarlo for K-mixed
+	print('monteCarlo for K-mixed')
 	lst_k_results = []
 	sum_k = 0
 	for iterate in range(montecarlo_iteration):
@@ -241,6 +247,9 @@ def func_to_multi(eee):
 			h_hc_sample = np.random.choice(timeHeadway_sample_hc, n_hc, replace=False)
 			h_ch_sample = np.random.choice(timeHeadway_sample_ch, n_ch, replace=False)
 			h_hh_sample = np.random.choice(timeHeadway_sample_hh, n_hh, replace=False)
+			# print('while 240: ', any(np.any(e_e >= h_hh_sample) for e_e in h_cc_sample),
+			# 	  any(np.any(e_e <= h_cc_sample) for e_e in h_ch_sample),
+			# 	  any(np.any(e_e <= h_hc_sample) for e_e in h_hh_sample))
 		df_car_queue.loc[(df_car_queue.queue == 'c') & (
 					df_car_queue.queue_shift_neg_1 == 'c'), 'h_mn_kMonteCarlo'] = h_cc_sample  # cc
 		df_car_queue.loc[(df_car_queue.queue == 'h') & (
@@ -257,20 +266,23 @@ def func_to_multi(eee):
 	plot_iteration('k', lst_k_results)
 	if k_mixed_jam > lst_k_results[-1] > k_mixed_critical:
 		# monteCarlo for C-mixed
+		print('monteCarlo for C-mixed')
 		dict_t, dict_c, dict_v_c = {}, {}, {}
 		lst_t_results, lst_c_results, lst_v_c_results = [], [], []
 		sum_t_predicted, sum_c_predicted, sum_v_c_predicted, = 0, 0, 0
 		for iterate in range(montecarlo_iteration):
 
-			h_cc, h_hh, h_ch, h_hc = np.array([10]), np.array([5]), np.array([7]), np.array(
-				[9]),
-			while any(np.any(e_e >= h_hh_sample) for e_e in h_cc_sample) or \
-					any(np.any(e_e <= h_cc_sample) for e_e in h_ch_sample) or \
-					any(np.any(e_e <= h_hc_sample) for e_e in h_hh_sample):
-				h_hh = np.random.choice(timeHeadway_sample_hh, size=1, replace=False)
-				h_hc = np.random.choice(timeHeadway_sample_hc, size=1, replace=False)
-				h_ch = np.random.choice(timeHeadway_sample_ch, size=1, replace=False)
+			h_cc, h_hh, h_ch, h_hc = np.array([10]), np.array([5]), np.array([7]), np.array([9]),
+			while any(np.any(e_e >= h_hh) for e_e in h_cc) or \
+					any(np.any(e_e <= h_cc) for e_e in h_ch) or \
+					any(np.any(e_e <= h_hc) for e_e in h_hh):
+				h_hh = np.random.choice(timeHeadway_sample_hh, replace=False)
+				h_hc = np.random.choice(timeHeadway_sample_hc, replace=False)
+				h_ch = np.random.choice(timeHeadway_sample_ch, replace=False)
 				h_cc = np.random.choice(timeHeadway_sample_cc, replace=False)
+				# print('while 280: ', any(np.any(e_e >= h_hh) for e_e in h_cc),
+				# 	  any(np.any(e_e <= h_cc) for e_e in h_ch),
+				# 	  any(np.any(e_e <= h_hc) for e_e in h_hh))
 			if (h_cc, h_ch, h_hc, h_hh) not in dict_t:
 				C_m = 3600 / (P_c * P_I * h_cc + P_c * (1 - P_I) * h_ch + P_h * (1 - P_HH) * h_hc + P_h * P_HH * h_hh)
 				v_c_ratio = (N_mix / C_m) ** 2
@@ -306,8 +318,8 @@ if __name__ == '__main__':
 	os.makedirs(f'{current_dir}/holy_moly/c', exist_ok=True)
 	os.makedirs(f'{current_dir}/holy_moly/v_c', exist_ok=True)
 	os.makedirs(f'{current_dir}/holy_moly/k', exist_ok=True)
-	sample_size = 4000
-	montecarlo_iteration = 2000
+	sample_size = 12000
+	montecarlo_iteration = 1000
 
 	spacing_headway = 2
 	vehicle_length = 4.2
