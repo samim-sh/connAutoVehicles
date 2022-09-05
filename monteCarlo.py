@@ -102,7 +102,7 @@ def ml_fit():
     # ML
     polynomial_features = PolynomialFeatures(degree=2)
     plRegressor = LinearRegression(fit_intercept=True)
-    lst_reg = {k: v for k, v in zip([i.split('_')[0] for i in xl_dist_headway.sheet_names],
+    lst_reg = {k: v for k, v in zip({i.split('_')[0]:ind for ind,i in enumerate(xl_dist_headway.sheet_names)}.keys(),
                                     [BaggingRegressor(base_estimator=GradientBoostingRegressor()),
                                      KNeighborsRegressor(),
                                      BaggingRegressor(base_estimator=GradientBoostingRegressor()),
