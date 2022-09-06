@@ -18,7 +18,7 @@ import math
 from collections import defaultdict
 
 
-def random_sample_data(dist_type, params, typ, s, d):
+def random_sample_data(dist_type, params, typ, s):
     if 'Log-normal' in dist_type:
         mu, sig = map(float, re.findall(r'\d+\.\d+', params))
         sample = np.random.lognormal(mean=mu, sigma=sig, size=s)
@@ -73,20 +73,20 @@ def random_sample_data(dist_type, params, typ, s, d):
             gmm = GMM(n_components=3)
             gmm.fit(df_speed_hour.Speed.values.reshape(-1, 1))
             sample = gmm.sample(s)[0].reshape(-1)
-    if P_c == .1:
-        if typ == 'timeHeadway':
-            sns.histplot(sample, kde=True, ax=ax_sample_time)
-            ax_sample_time.set_title(f'{P_c} {day_date} {start_peak} {lane_id} {dist_type}')
-            fig_time.tight_layout()
-            fig_time.savefig(f'holy_moly/{day_date}/{lane_id}/timeHeadway {start_peak} {dist_type}.png')
-        else:
-            sns.histplot(sample, kde=True, ax=ax_sample_speed)
-            ax_sample_speed.set_title(f'{P_c} {day_date} {start_peak} {lane_id} {dist_type}')
-            fig_speed.tight_layout()
-            fig_speed.savefig(f'holy_moly/{day_date}/{lane_id}/speed {start_peak} {dist_type}.png')
-        plt.close()
-
-    return sample
+    # if P_c == .1:
+    #     if typ == 'timeHeadway':
+    #         sns.histplot(sample, kde=True, ax=ax_sample_time)
+    #         ax_sample_time.set_title(f'{P_c} {day_date} {start_peak} {lane_id} {dist_type}')
+    #         fig_time.tight_layout()
+    #         fig_time.savefig(f'holy_moly/{day_date}/{lane_id}/timeHeadway {start_peak} {dist_type}.png')
+    #     else:
+    #         sns.histplot(sample, kde=True, ax=ax_sample_speed)
+    #         ax_sample_speed.set_title(f'{P_c} {day_date} {start_peak} {lane_id} {dist_type}')
+    #         fig_speed.tight_layout()
+    #         fig_speed.savefig(f'holy_moly/{day_date}/{lane_id}/speed {start_peak} {dist_type}.png')
+    #     plt.close()
+    #
+    # return sample
 
 
 def plot_iteration(typ, lst):
@@ -194,11 +194,11 @@ if __name__ == '__main__':
         dict_summary_table = {}
         df_writer = pd.DataFrame()
         lst_summary_table = defaultdict(lambda: defaultdict(dict))
-        print(dt.datetime.now(), P_c)
+        print('P_c', dt.datetime.now(), P_c)
         day_before = ''
         for each_sheet in xl_dist_headway.sheet_names[:]:
 
-            print(each_sheet)
+            print('each_sheet', dt.datetime.now(), each_sheet)
             day_date, lane_id = each_sheet.split('_')
             os.makedirs(f'{current_dir}/holy_moly/{day_date}/{lane_id}', exist_ok=True)
             dict_summary_table[day_date] = {i:dict() for i in range(1,6)}
@@ -215,26 +215,29 @@ if __name__ == '__main__':
                 reg = ml_fit()
             for indx_row, each_hour in df_dist_table_headway[:].iterrows():
                 start_peak, end_peak = each_hour.Time.time(), each_hour.To.time()
+                print('start_peak', start_peak)
                 if end_peak == dt.time(0,0,0):
                     end_peak = dt.time(23,59,59)
                 df_speed = xl_speed.parse(f'{day_date}_laneId_{lane_id}', usecols=['DateTime', 'timeHeadway', 'Speed'])
                 df_speed_hour = df_speed[(df_speed.DateTime.dt.time > dt.datetime.combine(dt.date(1,1,1),start_peak).time()) &
                                          (df_speed.DateTime.dt.time <= end_peak)]
                 N_mix = len(df_speed_hour)
-                if P_c == .1:
-                    fig_time, (ax_real_time, ax_sample_time) = plt.subplots(1,2,figsize=(16,9))
-                    fig_speed, (ax_real_speed, ax_sample_speed) = plt.subplots(1,2,figsize=(16,9))
-                    sns.histplot(df_speed_hour.timeHeadway, kde=True, ax=ax_real_time)
-                    sns.histplot(df_speed_hour.Speed, kde=True, ax=ax_real_speed)
+                # if P_c == .1:
+                #     fig_time, (ax_real_time, ax_sample_time) = plt.subplots(1,2,figsize=(16,9))
+                #     fig_speed, (ax_real_speed, ax_sample_speed) = plt.subplots(1,2,figsize=(16,9))
+                #     sns.histplot(df_speed_hour.timeHeadway, kde=True, ax=ax_real_time)
+                #     sns.histplot(df_speed_hour.Speed, kde=True, ax=ax_real_speed)
 
                 dist_type = df_dist_table_headway.at[indx_row, 'Distribution']
                 params = df_dist_table_headway.at[indx_row,'Parameters']
-                timeHeadway_sample = random_sample_data(dist_type, params, 'timeHeadway', sample_size, df_speed.timeHeadway)
-                timeHeadway_sample_cc = np.random.normal(1.2,.15,size=sample_size)
+                timeHeadway_sample_hh = random_sample_data(dist_type, params, 'timeHeadway', sample_size)
+                timeHeadway_sample_cc = np.random.triangular(.3, .9, 1.5, size=sample_size)
+                timeHeadway_sample_hc = np.random.triangular(.6, .9, 2.2, size=sample_size)
+                timeHeadway_sample_ch = np.random.triangular(.45, .9, 2, size=sample_size)
 
                 dist_type = df_dist_table_speed.at[indx_row, 'Distribution']
                 params = df_dist_table_speed.at[indx_row, 'Parameters']
-                speed_sample = random_sample_data(dist_type, params, 'speed', sample_size, df_speed.Speed)
+                speed_sample = random_sample_data(dist_type, params, 'speed', sample_size)
                 N_c = round(P_c * N_mix)
                 if N_c == 0:
                     N_c = math.ceil(P_c * N_mix)
@@ -269,9 +272,9 @@ if __name__ == '__main__':
                     # any(np.any(e_e <= h_cc_sample) for e_e in h_ch_sample) or\
                     # any(np.any(e_e <= h_hc_sample) for e_e in h_hh_sample):
                 h_cc_sample = np.random.choice(timeHeadway_sample_cc, n_cc, replace=False)
-                h_hc_sample = np.random.choice(timeHeadway_sample, n_hc, replace=False)
-                h_ch_sample = np.random.choice(timeHeadway_sample, n_ch, replace=False)
-                h_hh_sample = np.random.choice(timeHeadway_sample, n_hh, replace=False)
+                h_hc_sample = np.random.choice(timeHeadway_sample_hc, n_hc, replace=False)
+                h_ch_sample = np.random.choice(timeHeadway_sample_ch, n_ch, replace=False)
+                h_hh_sample = np.random.choice(timeHeadway_sample_hh, n_hh, replace=False)
                     # print('1')
                 df_car_queue.loc[(df_car_queue.queue == 'c') & (df_car_queue.queue_shift_neg_1 == 'c'), 'h_mn'] = h_cc_sample  # cc
                 df_car_queue.loc[(df_car_queue.queue == 'h') & (df_car_queue.queue_shift_neg_1 == 'c'), 'h_mn'] = h_hc_sample  # hc
@@ -291,9 +294,9 @@ if __name__ == '__main__':
                     #         any(np.any(e_e <= h_cc_sample) for e_e in h_ch_sample) or \
                     #         any(np.any(e_e <= h_hc_sample) for e_e in h_hh_sample):
                     h_cc_sample = np.random.choice(timeHeadway_sample_cc, n_cc, replace=False)
-                    h_hc_sample = np.random.choice(timeHeadway_sample, n_hc, replace=False)
-                    h_ch_sample = np.random.choice(timeHeadway_sample, n_ch, replace=False)
-                    h_hh_sample = np.random.choice(timeHeadway_sample, n_hh, replace=False)
+                    h_hc_sample = np.random.choice(timeHeadway_sample_hc, n_hc, replace=False)
+                    h_ch_sample = np.random.choice(timeHeadway_sample_ch, n_ch, replace=False)
+                    h_hh_sample = np.random.choice(timeHeadway_sample_hh, n_hh, replace=False)
                         # print('2')
                     df_car_queue.loc[(df_car_queue.queue == 'c') & (df_car_queue.queue_shift_neg_1 == 'c'), 'h_mn_kMonteCarlo'] = h_cc_sample  # cc
                     df_car_queue.loc[(df_car_queue.queue == 'h') & (df_car_queue.queue_shift_neg_1 == 'c'), 'h_mn_kMonteCarlo'] = h_hc_sample  # hc
@@ -310,7 +313,9 @@ if __name__ == '__main__':
                     lst_t_results, lst_c_results, lst_v_c_results = [], [], []
                     sum_t_predicted, sum_c_predicted, sum_v_c_predicted,  = 0, 0, 0
                     for iterate in range(montecarlo_iteration):
-                        h_ch, h_hc, h_hh = np.random.choice(timeHeadway_sample, size=3, replace=False)
+                        h_hh = np.random.choice(timeHeadway_sample_hh, replace=False)
+                        h_hc = np.random.choice(timeHeadway_sample_hc, replace=False)
+                        h_ch = np.random.choice(timeHeadway_sample_ch, replace=False)
                         h_cc = np.random.choice(timeHeadway_sample_cc, replace=False)
                         if (h_cc, h_ch, h_hc, h_hh) not in dict_t:
                             C_m = 3600 / (P_c * P_I * h_cc + P_c * (1 - P_I) * h_ch + P_h * (1 - P_HH) * h_hc + P_h * P_HH * h_hh)
