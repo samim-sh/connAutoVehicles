@@ -85,8 +85,8 @@ def random_sample_data(dist_type, params, typ, s):
     #         fig_speed.tight_layout()
     #         fig_speed.savefig(f'holy_moly/{day_date}/{lane_id}/speed {start_peak} {dist_type}.png')
     #     plt.close()
-    #
-    # return sample
+
+    return sample
 
 
 def plot_iteration(typ, lst):
