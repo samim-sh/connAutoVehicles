@@ -19,6 +19,7 @@ import os
 import math
 from collections import defaultdict
 from multiprocessing import Pool
+from multiprocessing.pool import ThreadPool
 
 
 def random_sample_data(dist_type, params, typ, s, d):
@@ -81,12 +82,12 @@ def random_sample_data(dist_type, params, typ, s, d):
 	# 		sns.histplot(sample, kde=True, ax=ax_sample_time)
 	# 		ax_sample_time.set_title(f'{P_c} {day_date} {start_peak} {lane_id} {dist_type}')
 	# 		fig_time.tight_layout()
-	# 		fig_time.savefig(f'holy_moly/{day_date}/{lane_id}/timeHeadway {start_peak} {dist_type}.png')
+	# 		fig_time.savefig(f'holy_moly_multi/{day_date}/{lane_id}/timeHeadway {start_peak} {dist_type}.png')
 	# 	else:
 	# 		sns.histplot(sample, kde=True, ax=ax_sample_speed)
 	# 		ax_sample_speed.set_title(f'{P_c} {day_date} {start_peak} {lane_id} {dist_type}')
 	# 		fig_speed.tight_layout()
-	# 		fig_speed.savefig(f'holy_moly/{day_date}/{lane_id}/speed {start_peak} {dist_type}.png')
+	# 		fig_speed.savefig(f'holy_moly_multi/{day_date}/{lane_id}/speed {start_peak} {dist_type}.png')
 	# 	plt.close()
 
 	return sample
@@ -97,7 +98,7 @@ def plot_iteration(typ, lst):
 	plt.ylabel(typ, rotation=0)
 	plt.title(f'{P_c} {day_date} {start_peak} {lane_id}')
 	plt.plot(lst)
-	plt.savefig(f'holy_moly/{typ}/{P_c} {day_date} {start_peak} {lane_id}.png')
+	plt.savefig(f'holy_moly_multi/{typ}/{P_c} {day_date} {start_peak} {lane_id}.png')
 	plt.close()
 
 
@@ -316,11 +317,11 @@ def func_to_multi(eee):
 
 if __name__ == '__main__':
 	current_dir = os.getcwd()
-	os.makedirs(f'{current_dir}/holy_moly/t', exist_ok=True)
-	os.makedirs(f'{current_dir}/holy_moly/c', exist_ok=True)
-	os.makedirs(f'{current_dir}/holy_moly/v_c', exist_ok=True)
-	os.makedirs(f'{current_dir}/holy_moly/k', exist_ok=True)
-	sample_size = 12000
+	os.makedirs(f'{current_dir}/holy_moly_multi/t', exist_ok=True)
+	os.makedirs(f'{current_dir}/holy_moly_multi/c', exist_ok=True)
+	os.makedirs(f'{current_dir}/holy_moly_multi/v_c', exist_ok=True)
+	os.makedirs(f'{current_dir}/holy_moly_multi/k', exist_ok=True)
+	sample_size = 6000
 	montecarlo_iteration = 1000
 
 	spacing_headway = 2
@@ -328,7 +329,7 @@ if __name__ == '__main__':
 	xl = pd.ExcelFile('datasets/summary_5min_period.xlsx')
 	xl_speed = pd.ExcelFile('datasets/speed_chosen.xlsx',engine='openpyxl')
 
-	xl_write = pd.ExcelWriter('holy_moly/final_result.xlsx', engine='openpyxl')
+	xl_write = pd.ExcelWriter('holy_moly_multi/final_result.xlsx', engine='openpyxl')
 	xl_dist_headway = pd.ExcelFile('datasets/dist_headway.xlsx')
 	"""
 	a = [pd.Series(xl_dist_headway.parse(each_sheet).Parameters.values,index=xl_dist_headway.parse(each_sheet).Distribution).to_dict() for each_sheet in xl_dist_headway.sheet_names]
@@ -371,7 +372,7 @@ if __name__ == '__main__':
 
 			print('each_sheet', dt.datetime.now(), each_sheet)
 			day_date, lane_id = each_sheet.split('_')
-			os.makedirs(f'{current_dir}/holy_moly/{day_date}/{lane_id}', exist_ok=True)
+			os.makedirs(f'{current_dir}/holy_moly_multi/{day_date}/{lane_id}', exist_ok=True)
 			dict_summary_table[day_date] = {i:dict() for i in range(1,6)}
 			df_dist_table_headway = xl_dist_headway.parse(each_sheet, parse_dates=['Time', 'To'])
 			df_dist_table_speed = xl_dist_speed.parse(each_sheet, parse_dates=['Time', 'To'])
@@ -385,14 +386,15 @@ if __name__ == '__main__':
 
 			# start pool -->
 			t1 = time.time()
-			pool = Pool()
+			# pool = Pool()
 			lst_to_poo = [(i[0],i[1]) for i in df_dist_table_headway[:].iterrows()]
-			combo = pool.map(func_to_multi, lst_to_poo)
-			for i in combo:
-				start_peak = i[0]
-				lst_summary_table[day_date][lane_id][start_peak] = i[1]
-			pool.terminate()
-			pool.join()
+			with Pool(3) as pool:
+				combo = pool.map(func_to_multi, lst_to_poo)
+				for i in combo:
+					start_peak = i[0]
+					lst_summary_table[day_date][lane_id][start_peak] = i[1]
+			# pool.terminate()
+			# pool.join()
 			print('pool', dt.datetime.now(), each_sheet, time.time() - t1)
 			# <-- end pool
 
