@@ -43,7 +43,7 @@ def k_monteCarlo(montecarlo_iteration):
         k = 1 / (np.random.choice(speed_sample, replace=False) * (P_c * (
                 df_car_queue.P_mn * df_car_queue.h_mn_kMonteCarlo).sum()) + spacing_headway * P_h + vehicle_length)
         sum_k += k
-        return sum_k
+    return sum_k
 
 
 def t_monteCarlo(montecarlo_iteration):
