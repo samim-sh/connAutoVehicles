@@ -251,7 +251,7 @@ if __name__ == '__main__':
     ('Weibull (2)', 'β= 4.329, γ= 84.120')]
     """
 
-    for P_c in [.7]:
+    for P_c in [.2]:
         xl_write = pd.ExcelWriter(f'holy_moly/{P_c}_final_result.xlsx', engine='openpyxl')
         dict_summary_table = {}
 

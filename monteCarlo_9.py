@@ -26,8 +26,13 @@ from multiprocessing import Pool
 
 def k_monteCarlo(montecarlo_iteration):
     sum_k = 0
+    lst_k_results = []
     for iterate in range(montecarlo_iteration):
         df_car_queue['h_mn_kMonteCarlo'] = None
+        # h_cc_sample, h_hh_sample, h_ch_sample, h_hc_sample = np.array([10]),np.array([5]),np.array([7]),np.array([9]),
+        # while any(np.any(e_e >= h_hh_sample) for e_e in h_cc_sample) or \
+        #         any(np.any(e_e <= h_cc_sample) for e_e in h_ch_sample) or \
+        #         any(np.any(e_e <= h_hc_sample) for e_e in h_hh_sample):
         h_cc_sample = np.random.choice(timeHeadway_sample_cc, n_cc, replace=False)
         h_hc_sample = np.random.choice(timeHeadway_sample_hc, n_hc, replace=False)
         h_ch_sample = np.random.choice(timeHeadway_sample_ch, n_ch, replace=False)
@@ -43,11 +48,16 @@ def k_monteCarlo(montecarlo_iteration):
         k = 1 / (np.random.choice(speed_sample, replace=False) * (P_c * (
                 df_car_queue.P_mn * df_car_queue.h_mn_kMonteCarlo).sum()) + spacing_headway * P_h + vehicle_length)
         sum_k += k
-    return sum_k
+        avg_k = sum_k / (iterate + 1)
+        lst_k_results.append(avg_k)
+    plot_iteration('k', lst_k_results)
+    return lst_k_results
 
 
 def t_monteCarlo(montecarlo_iteration):
+    lst_t_results, lst_c_results, lst_v_c_results = [], [], []
     sum_t_predicted, sum_c_predicted, sum_v_c_predicted, = 0, 0, 0
+
     for iterate in range(montecarlo_iteration):
         h_hh = np.random.choice(timeHeadway_sample_hh, replace=False)
         h_hc = np.random.choice(timeHeadway_sample_hc, replace=False)
@@ -59,7 +69,16 @@ def t_monteCarlo(montecarlo_iteration):
         sum_t_predicted += t_predicted
         sum_c_predicted += C_m
         sum_v_c_predicted += v_c_ratio
-    return sum_t_predicted, sum_c_predicted, sum_v_c_predicted
+        avg_t_predicted = sum_t_predicted / (iterate + 1)
+        avg_c_predicted = sum_c_predicted / (iterate + 1)
+        avg_v_c_predicted = sum_v_c_predicted / (iterate + 1)
+        lst_t_results.append(avg_t_predicted)
+        lst_c_results.append(avg_c_predicted)
+        lst_v_c_results.append(avg_v_c_predicted)
+    plot_iteration('t', lst_t_results)
+    plot_iteration('c', lst_c_results)
+    plot_iteration('v_c', lst_v_c_results)
+    return lst_t_results, lst_c_results, lst_v_c_results
 
 
 def random_sample_data(dist_type, params, typ, s):
@@ -181,7 +200,6 @@ def ml_fit():
     df_day_date['VC_ratio'] = df_day_date[['total_vol_all_lanes']].div(561.25, axis=0)
     x = df_day_date.loc[:, ['VC_ratio']] ** 2
     y = df_day_date.loc[:, ['travelTime']]
-    # train & test set
     reg = lst_reg[day_date]
     reg.fit(x.values, y.values.ravel())
     return reg
@@ -233,7 +251,7 @@ if __name__ == '__main__':
     ('Weibull (2)', 'β= 4.329, γ= 84.120')]
     """
 
-    for P_c in np.round(np.arange(0.1, 1, .1).tolist(), 2)[8:9]:
+    for P_c in [.9]:
         xl_write = pd.ExcelWriter(f'holy_moly/{P_c}_final_result.xlsx', engine='openpyxl')
         dict_summary_table = {}
 
@@ -259,7 +277,7 @@ if __name__ == '__main__':
                 reg = ml_fit()
             for indx_row, each_hour in df_dist_table_headway[:].iterrows():
                 start_peak, end_peak = each_hour.Time.time(), each_hour.To.time()
-                print('start_peak', dt.datetime.now(), start_peak)
+                # print('start_peak', dt.datetime.now(), start_peak)
                 if end_peak == dt.time(0, 0, 0):
                     end_peak = dt.time(23, 59, 59)
                 df_speed = xl_speed.parse(f'{day_date}_laneId_{lane_id}', usecols=['DateTime', 'timeHeadway', 'Speed'])
@@ -299,24 +317,18 @@ if __name__ == '__main__':
                     n_hh = sum((df_car_queue.queue == 'h') & (df_car_queue.queue_shift_neg_1 == 'h'))
                     n_hc = sum((df_car_queue.queue == 'h') & (df_car_queue.queue_shift_neg_1 == 'c'))
                     n_ch = sum((df_car_queue.queue == 'c') & (df_car_queue.queue_shift_neg_1 == 'h'))
-                    # if (n_cc + n_ch)==0:
-                    #     print(f'N_mix {N_mix} - N_c {N_c} - N_h {N_h} - n_cc {n_cc} - n_ch {n_ch}')
                 P_I = n_cc / (n_cc + n_ch)
                 P_HH = n_hh / (n_hh + n_hc)
                 # ρ_mn
                 df_car_queue['P_mn'] = None
                 df_car_queue.loc[
-                    (df_car_queue.queue == 'c') & (df_car_queue.queue_shift_neg_1 == 'h'), 'P_mn'] = P_h * (
-                            1 - P_I)  # ch
+                    (df_car_queue.queue == 'c') & (df_car_queue.queue_shift_neg_1 == 'h'), 'P_mn'] = P_h * (1 - P_I)  # ch
                 df_car_queue.loc[
-                    (df_car_queue.queue == 'c') & (df_car_queue.queue_shift_neg_1 == 'c'), 'P_mn'] = 1 - P_h * (
-                            1 - P_I)  # cc
+                    (df_car_queue.queue == 'c') & (df_car_queue.queue_shift_neg_1 == 'c'), 'P_mn'] = 1 - P_h * (1 - P_I)  # cc
                 df_car_queue.loc[
-                    (df_car_queue.queue == 'h') & (df_car_queue.queue_shift_neg_1 == 'c'), 'P_mn'] = P_c * (
-                            1 - P_I)  # hc
+                    (df_car_queue.queue == 'h') & (df_car_queue.queue_shift_neg_1 == 'c'), 'P_mn'] = P_c * (1 - P_I)  # hc
                 df_car_queue.loc[
-                    (df_car_queue.queue == 'h') & (df_car_queue.queue_shift_neg_1 == 'h'), 'P_mn'] = 1 - P_c * (
-                            1 - P_I)  # hh
+                    (df_car_queue.queue == 'h') & (df_car_queue.queue_shift_neg_1 == 'h'), 'P_mn'] = 1 - P_c * (1 - P_I)  # hh
                 # h_mn
                 df_car_queue['h_mn'] = None
                 # h_cc_sample, h_hh_sample, h_ch_sample, h_hc_sample = np.array([10]), np.array([5]), np.array([7]), np.array([9]),
@@ -327,29 +339,22 @@ if __name__ == '__main__':
                 h_hc_sample = np.random.choice(timeHeadway_sample_hc, n_hc, replace=False)
                 h_ch_sample = np.random.choice(timeHeadway_sample_ch, n_ch, replace=False)
                 h_hh_sample = np.random.choice(timeHeadway_sample_hh, n_hh, replace=False)
-                # print('1')
-                df_car_queue.loc[
-                    (df_car_queue.queue == 'c') & (df_car_queue.queue_shift_neg_1 == 'c'), 'h_mn'] = h_cc_sample  # cc
-                df_car_queue.loc[
-                    (df_car_queue.queue == 'h') & (df_car_queue.queue_shift_neg_1 == 'c'), 'h_mn'] = h_hc_sample  # hc
-                df_car_queue.loc[
-                    (df_car_queue.queue == 'c') & (df_car_queue.queue_shift_neg_1 == 'h'), 'h_mn'] = h_ch_sample  # ch
-                df_car_queue.loc[
-                    (df_car_queue.queue == 'h') & (df_car_queue.queue_shift_neg_1 == 'h'), 'h_mn'] = h_hh_sample  # hh
+                df_car_queue.loc[(df_car_queue.queue == 'c') & (df_car_queue.queue_shift_neg_1 == 'c'), 'h_mn'] = h_cc_sample  # cc
+                df_car_queue.loc[(df_car_queue.queue == 'h') & (df_car_queue.queue_shift_neg_1 == 'c'), 'h_mn'] = h_hc_sample  # hc
+                df_car_queue.loc[(df_car_queue.queue == 'c') & (df_car_queue.queue_shift_neg_1 == 'h'), 'h_mn'] = h_ch_sample  # ch
+                df_car_queue.loc[(df_car_queue.queue == 'h') & (df_car_queue.queue_shift_neg_1 == 'h'), 'h_mn'] = h_hh_sample  # hh
                 k_mixed_critical = 1 / (100 * P_c * (df_car_queue.P_mn * df_car_queue.h_mn).sum() + spacing_headway * (
                             1 - P_c) + vehicle_length)
                 k_mixed_jam = 1 / (spacing_headway * (1 - P_c) + vehicle_length)
 
                 # monteCarlo for K-mixed
-
-                lst_k = k_monteCarlo(montecarlo_iteration)
-                if k_mixed_jam > lst_k / montecarlo_iteration > k_mixed_critical:
+                lst_k_results = k_monteCarlo(montecarlo_iteration)
+                if k_mixed_jam > lst_k_results[-1] > k_mixed_critical:
                     # monteCarlo for C-mixed
-                    lst_t_c_v_c = t_monteCarlo(montecarlo_iteration)
-                    lst_t, lst_c, lst_v_c = lst_t_c_v_c
-                    lst_summary_table[day_date][lane_id][start_peak] = [lst_t / montecarlo_iteration,
-                                                                        lst_c / montecarlo_iteration,
-                                                                        lst_v_c / montecarlo_iteration]
+                    lst_t_results,lst_c_results,lst_v_c_results = t_monteCarlo(montecarlo_iteration)
+                    lst_summary_table[day_date][lane_id][start_peak] = [lst_t_results[-1],
+                                                                        lst_c_results[-1],
+                                                                        lst_v_c_results[-1]]
                 else:
                     lst_summary_table[day_date][lane_id][start_peak] = [None, None, None]
         for day in lst_summary_table:
